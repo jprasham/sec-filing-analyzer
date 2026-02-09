@@ -1,10 +1,12 @@
 """
 SEC Filings Analyzer — Vercel Serverless Backend (Flask)
+Uses Google Gemini for financial data extraction.
+
 Routes:
   GET  /api/metadata      -> ticker-to-CIK map
   POST /api/scan           -> check batch of tickers for qualifying filings
   GET  /api/filing         -> fetch filing HTML
-  POST /api/analyze        -> Claude extraction + scoring
+  POST /api/analyze        -> Gemini extraction + scoring
   GET  /api/pair           -> find 8K/10Q pair for a filing
 """
 
@@ -16,9 +18,9 @@ from flask import Flask, request, jsonify, Response
 import requests as http_req
 
 try:
-    from anthropic import Anthropic
+    import google.generativeai as genai
 except ImportError:
-    Anthropic = None
+    genai = None
 
 try:
     from zoneinfo import ZoneInfo
@@ -36,6 +38,37 @@ SEC_AH = {"User-Agent": SEC_UA, "Accept-Encoding": "gzip, deflate", "Host": "www
 
 # ── Flask app ─────────────────────────────────────────────
 app = Flask(__name__)
+
+# ── Gemini setup ──────────────────────────────────────────
+_gemini_model = None
+
+def get_gemini_model():
+    global _gemini_model
+    if _gemini_model is not None:
+        return _gemini_model
+    if not genai:
+        raise ValueError("google-generativeai package not available")
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        raise ValueError("GEMINI_API_KEY environment variable not set")
+    genai.configure(api_key=api_key)
+    _gemini_model = genai.GenerativeModel(
+        model_name="gemini-2.5-flash-preview-05-20",
+        system_instruction=(
+            "You are a disciplined, data-driven investment analyst. "
+            "Do not fabricate, estimate, or assume any facts, numbers, or figures. "
+            "If data is unavailable, use the string \"null\" where instructed. "
+            "When instructed to output STRICT JSON, output only valid JSON with no extra text."
+        ),
+    )
+    return _gemini_model
+
+
+def query_gemini(prompt: str) -> str:
+    model = get_gemini_model()
+    resp = model.generate_content(prompt)
+    return getattr(resp, "text", str(resp))
+
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # SEC HELPERS
@@ -247,7 +280,7 @@ def get_qualifying_filings(cik: str, days: int = 30) -> List[dict]:
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# SCORING ENGINE
+# SCORING ENGINE (identical to Streamlit version)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 def _parse_value(val_str, unit_str):
@@ -410,7 +443,7 @@ def compute_scorecard(data_json):
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# CLAUDE EXTRACTION
+# GEMINI EXTRACTION (matches Streamlit prompt exactly)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 EXTRACTION_PROMPT = """
@@ -423,32 +456,95 @@ ABSOLUTE RULES:
 - If a value is not present, set it to the STRING "null" (not JSON null).
 - Return ONLY valid JSON. No markdown. No commentary.
 
-PERIOD RULES:
-A) Income Statement: "Three Months Ended" current quarter (current) and prior-year same quarter (prior).
-B) Balance Sheet (AR): period-end amounts for current and prior-year same quarter.
-C) Cash Flow (OCF + CapEx proxy): Three Months if available, else most recent period shown (e.g. Nine Months).
+PERIOD RULES (CRITICAL):
+A) Income Statement metrics MUST be for:
+   - "Three Months Ended" current quarter (current)
+   - "Three Months Ended" prior-year same quarter (prior)
 
-WHERE TO LOOK:
-1) revenue, operating_income, net_income_gaap: Consolidated Statements of Operations
-2) gross_profit: If explicitly shown on Income Statement, extract it. If NOT shown, set to "null".
-3) cost_of_sales: "Cost of sales"/"Cost of revenue"/"Cost of goods sold" from Income Statement.
-4) accounts_receivable: Consolidated Balance Sheets
-5) ocf: "Net cash provided by (used for/in) operating activities"
-6) capex: "Net cash provided by (used for/in) investing activities" (investing CF total as proxy)
-7) interest_expense: "Interest expense" or "Finance costs"
-8) sbc_expense: "Stock-based compensation" or "Share-based compensation"
-9) rpo: "Remaining performance obligations" or "RPO" or "backlog"
+B) Balance Sheet metric (Accounts Receivable):
+   - Use period-end amounts for the quarter end date (current)
+   - Use prior-year same quarter end date (prior)
+   - Line name typically: "Accounts receivable, net" or "Accounts receivable"
 
-ONE-OFF FLAGS:
-- has_one_off_gain = true if "Gain on sale", "Gain on divestiture", "Tax benefit" appear.
-- has_one_off_loss = true if "Restructuring", "Impairment", "Legal settlement", "Write-down" appear.
+C) Cash Flow metrics (OCF + CapEx proxy):
+   - First try to find them under a "Three Months Ended" cash flow section IF it exists.
+   - If the cash flow statement only shows YTD (common in 10-Q), then extract from the MOST RECENT cash flow period shown
+     (e.g., "Nine Months Ended") using the current period column.
+   - Do NOT guess quarterly cash flow if only YTD is shown.
 
-REPORTING UNIT: Set meta.reporting_unit (e.g., "Millions", "Thousands", "ones").
-PERIOD ENDED: Set meta.period_ended to the quarter end date string.
+WHERE TO LOOK (STRICT):
+1) revenue, operating_income, net_income_gaap:
+   - Consolidated Statements of Operations (Income Statement)
+
+2) gross_profit (IMPORTANT):
+   - If the Income Statement explicitly shows a line item called "Gross profit" (or "Gross profit (loss)"),
+     then extract it (current/prior).
+   - If the Income Statement DOES NOT show a gross profit line (common for some companies like Amazon),
+     set gross_profit.current and gross_profit.prior to the STRING "null".
+   - In that case, you MUST still extract cost_of_sales (below). Gross profit will be computed in Python as:
+       gross_profit = revenue - cost_of_sales
+
+3) cost_of_sales (REQUIRED WHEN GROSS PROFIT IS NOT SHOWN):
+   - Income Statement line like:
+     - "Cost of sales"
+     - "Cost of goods sold"
+     - "Cost of revenue"
+     - "Cost of revenues"
+   - Extract for Three Months Ended current/prior (same period rules as revenue).
+
+4) accounts_receivable:
+   - Consolidated Balance Sheets
+   - Line like "Accounts receivable, net" / "Accounts receivable"
+
+5) ocf:
+   - Cash Flow Statement line matching ANY of:
+     - "Net cash provided by (used for) operating activities"
+     - "Net cash provided by (used in) operating activities"
+     - "Net cash (used in) provided by operating activities"
+   - If this is an 8-K press release and it uses prose, accept:
+     - "cash from operations" / "cash provided by operating activities"
+
+6) capex (IMPORTANT: USE INVESTING CASH FLOW AS CAPEX PROXY):
+   - Extract the value from the Cash Flow Statement line:
+     - "Net cash provided by (used for) investing activities"
+     - "Net cash provided by (used in) investing activities"
+     - "Net cash (used in) provided by investing activities"
+   - Treat this as the CapEx proxy even though it may include other investing items.
+   - Use the same period logic as OCF (Three Months if available, else the most recent shown such as Nine Months).
+
+7) interest_expense:
+   - "Interest expense" OR "Finance costs"
+
+8) sbc_expense:
+   - Income Statement OR Cash Flow non-cash addback line:
+     - "Stock-based compensation"
+     - "Share-based compensation"
+
+9) rpo:
+   - "Remaining performance obligations" OR "RPO" OR "backlog"
+   - If not present in the filing text, set to "null".
+
+ONE-OFF KEYWORDS (BOOLEAN FLAGS):
+- has_one_off_gain = true if terms like "Gain on sale", "Gain on divestiture", "Divestiture", "Tax benefit" appear.
+- has_one_off_loss = true if terms like "Restructuring", "Impairment", "Legal settlement", "Write-down" appear.
+
+REPORTING UNIT:
+- Set meta.reporting_unit to the unit stated in the statements (e.g., "Millions", "Thousands").
+- If not explicitly stated, use "ones".
+
+PERIOD ENDED:
+- meta.period_ended should be the quarter end date string if visible (e.g., "Sep 27, 2025").
+
+STRICT OUTPUT:
+Return ONLY a single valid JSON object matching this schema. No markdown. No commentary.
 
 JSON OUTPUT SCHEMA:
 {{
-  "meta": {{ "doc_type": "{doc_type}", "reporting_unit": "String", "period_ended": "String" }},
+  "meta": {{
+    "doc_type": "{doc_type}",
+    "reporting_unit": "String (e.g., 'Millions')",
+    "period_ended": "String"
+  }},
   "data": {{
     "revenue": {{ "current": "String", "prior": "String" }},
     "cost_of_sales": {{ "current": "String", "prior": "String" }},
@@ -462,7 +558,10 @@ JSON OUTPUT SCHEMA:
     "rpo": {{ "current": "String", "prior": "String" }},
     "accounts_receivable": {{ "current": "String", "prior": "String" }}
   }},
-  "flags": {{ "has_one_off_gain": false, "has_one_off_loss": false }}
+  "flags": {{
+    "has_one_off_gain": false,
+    "has_one_off_loss": false
+  }}
 }}
 
 FILING TEXT:
@@ -484,23 +583,61 @@ def _clean_json(raw):
     return json.loads(s)
 
 
-def extract_with_claude(filing_text: str, doc_type: str) -> dict:
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
-    if not api_key:
-        raise ValueError("ANTHROPIC_API_KEY not set")
-    if not Anthropic:
-        raise ValueError("anthropic package not available")
+def _regex_find_first_number_after(text, patterns):
+    if not text:
+        return None
+    t = re.sub(r"\s+", " ", text)
+    num = r"(\(?-?\$?\s*[\d,]+(?:\.\d+)?\)?)"
+    for pat in patterns:
+        m = re.search(pat + r".{0,220}?" + num, t, flags=re.IGNORECASE)
+        if m:
+            val = m.group(1).strip()
+            if re.search(r"\d", val):
+                return val
+    return None
 
-    client = Anthropic(api_key=api_key)
-    prompt = EXTRACTION_PROMPT.format(doc_type=doc_type, filing_text=filing_text[:200_000])
-    msg = client.messages.create(
-        model="claude-sonnet-4-20250514",
-        max_tokens=4096,
-        system="You are a disciplined financial data miner. Output ONLY valid JSON, nothing else.",
-        messages=[{"role": "user", "content": prompt}],
-    )
-    raw = msg.content[0].text
-    data = _clean_json(raw)
+
+def fallback_extract_ocf_capex_ar(filing_text):
+    ocf_patterns = [
+        r"net cash provided by\s*\(used for\)\s*operating activities",
+        r"net cash provided by\s*\(used in\)\s*operating activities",
+        r"net cash\s*\(used in\)\s*provided by\s*operating activities",
+        r"net cash provided by operating activities",
+        r"net cash used in operating activities",
+        r"cash from operations",
+        r"cash provided by operating activities",
+    ]
+    capex_patterns = [
+        r"net cash provided by\s*\(used for\)\s*investing activities",
+        r"net cash provided by\s*\(used in\)\s*investing activities",
+        r"net cash\s*\(used in\)\s*provided by\s*investing activities",
+        r"net cash provided by investing activities",
+        r"net cash used in investing activities",
+    ]
+    ar_patterns = [
+        r"accounts receivable,\s*net",
+        r"accounts receivable\s*net",
+        r"accounts receivable",
+    ]
+    return {
+        "ocf": _regex_find_first_number_after(filing_text, ocf_patterns),
+        "capex": _regex_find_first_number_after(filing_text, capex_patterns),
+        "ar": _regex_find_first_number_after(filing_text, ar_patterns),
+    }
+
+
+def extract_with_gemini(filing_text: str, doc_type: str) -> dict:
+    MAX_CHARS = 250_000
+    filing_text = (filing_text or "")[:MAX_CHARS]
+
+    prompt = EXTRACTION_PROMPT.format(doc_type=doc_type, filing_text=filing_text)
+    raw = query_gemini(prompt)
+
+    try:
+        data = _clean_json(raw)
+    except Exception as e:
+        snippet = (raw or "")[:500].replace("\n", "\\n")
+        raise ValueError(f"Gemini did not return valid JSON. Error={e}. Snippet={snippet}")
 
     data.setdefault("meta", {})
     data.setdefault("data", {})
@@ -522,11 +659,28 @@ def extract_with_claude(filing_text: str, doc_type: str) -> dict:
         if k not in data["data"] or not isinstance(data["data"].get(k), dict):
             data["data"][k] = tmpl
 
+    # Regex fallback for missing OCF / CapEx / AR
+    def is_missing(x):
+        return x is None or str(x).strip().lower() in ("", "n/a", "na", "null")
+
+    ocf_cur = (data["data"].get("ocf", {}) or {}).get("current")
+    capex_cur = (data["data"].get("capex", {}) or {}).get("current")
+    ar_cur = (data["data"].get("accounts_receivable", {}) or {}).get("current")
+
+    if is_missing(ocf_cur) or is_missing(capex_cur) or is_missing(ar_cur):
+        fb = fallback_extract_ocf_capex_ar(filing_text)
+        if is_missing(ocf_cur) and fb.get("ocf"):
+            data["data"]["ocf"]["current"] = fb["ocf"]
+        if is_missing(capex_cur) and fb.get("capex"):
+            data["data"]["capex"]["current"] = fb["capex"]
+        if is_missing(ar_cur) and fb.get("ar"):
+            data["data"]["accounts_receivable"]["current"] = fb["ar"]
+
     return data
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# PAIR FINDING (8K ↔ 10Q)
+# PAIR FINDING (8K <-> 10Q)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 def _find_next_10q(cik, anchor_date, max_days=120):
@@ -634,7 +788,7 @@ def scan():
         days = int(body.get("days", 30))
         meta = load_ticker_metadata()
         results = []
-        for t in tickers[:15]:  # limit per request
+        for t in tickers[:15]:
             t = t.upper().strip()
             info = meta.get(t)
             if not info:
@@ -690,14 +844,14 @@ def analyze():
         if eight_k:
             html = fetch_effective_8k_html(cik, eight_k["accession_number"], eight_k["primary_document"])
             text = html_to_text(html)
-            data_json = extract_with_claude(text, "8K")
+            data_json = extract_with_gemini(text, "8K")
             scorecard = compute_scorecard(data_json)
             out["eight_k"] = {"json": data_json, "scorecard": scorecard}
 
         if ten_q:
             html = fetch_filing_html(cik, ten_q["accession_number"], ten_q["primary_document"])
             text = html_to_text(html)
-            data_json = extract_with_claude(text, "10Q")
+            data_json = extract_with_gemini(text, "10Q")
             scorecard = compute_scorecard(data_json)
             out["ten_q"] = {"json": data_json, "scorecard": scorecard}
 
