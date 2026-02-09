@@ -4,163 +4,172 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SEC Forensic Filing Analyzer</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --bg:#0a0e17;--bg2:#111827;--bg3:#1a2235;--bg4:#243049;
-  --tx:#e2e8f0;--tx2:#94a3b8;--tx3:#64748b;
-  --green:#22c55e;--green2:#16a34a;--green-bg:rgba(34,197,94,.08);
-  --red:#ef4444;--red2:#dc2626;--red-bg:rgba(239,68,68,.08);
+  --tx:#e2e8f0;--tx2:#94a3b8;--tx3:#64748b;--tx4:#555570;
+  --green:#00e676;--green2:#16a34a;--green-bg:rgba(0,230,118,.08);
+  --red:#ff3d57;--red-bg:rgba(255,61,87,.08);
   --blue:#3b82f6;--blue2:#2563eb;--blue-bg:rgba(59,130,246,.08);
-  --amber:#f59e0b;--amber-bg:rgba(245,158,11,.08);
+  --amber:#ffab00;--amber-bg:rgba(255,171,0,.08);
   --cyan:#06b6d4;
   --border:#1e293b;--border2:#334155;
   --radius:8px;
 }
 html{font-size:14px}
 body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;line-height:1.6;min-height:100vh}
-
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-track{background:var(--bg2)}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
-
 .app{max-width:1400px;margin:0 auto;padding:1.5rem}
 .header{display:flex;align-items:center;gap:1rem;margin-bottom:2rem;padding-bottom:1rem;border-bottom:1px solid var(--border)}
 .header h1{font-family:'JetBrains Mono',monospace;font-size:1.3rem;font-weight:600;color:var(--cyan);letter-spacing:-.02em}
 .header .badge{font-size:.7rem;padding:2px 8px;border-radius:99px;background:var(--blue-bg);color:var(--blue);border:1px solid rgba(59,130,246,.2);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
-
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1rem}
 .card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem}
 .card-title{font-family:'JetBrains Mono',monospace;font-size:.85rem;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.06em}
-
 .controls{display:flex;gap:.75rem;flex-wrap:wrap;align-items:end}
 .field{display:flex;flex-direction:column;gap:.3rem}
 .field label{font-size:.75rem;color:var(--tx3);font-weight:500;text-transform:uppercase;letter-spacing:.04em}
-input[type="text"],input[type="number"],select{
-  background:var(--bg3);border:1px solid var(--border2);color:var(--tx);padding:.5rem .75rem;
-  border-radius:6px;font-size:.85rem;font-family:'DM Sans',sans-serif;outline:none;transition:border .15s;min-width:120px}
+input[type="text"],input[type="number"],select{background:var(--bg3);border:1px solid var(--border2);color:var(--tx);padding:.5rem .75rem;border-radius:6px;font-size:.85rem;font-family:'DM Sans',sans-serif;outline:none;transition:border .15s;min-width:120px}
 input:focus,select:focus{border-color:var(--blue)}
 textarea{background:var(--bg3);border:1px solid var(--border2);color:var(--tx);padding:.5rem;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:.75rem;width:100%;resize:vertical;outline:none}
-
-.btn{
-  padding:.5rem 1.2rem;border-radius:6px;font-size:.8rem;font-weight:600;cursor:pointer;border:none;
-  font-family:'DM Sans',sans-serif;transition:all .15s;display:inline-flex;align-items:center;gap:.4rem}
-.btn-primary{background:var(--blue);color:#fff}
-.btn-primary:hover{background:var(--blue2)}
-.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.btn{padding:.5rem 1.2rem;border-radius:6px;font-size:.8rem;font-weight:600;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;transition:all .15s;display:inline-flex;align-items:center;gap:.4rem}
+.btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{background:var(--blue2)}.btn-primary:disabled{opacity:.4;cursor:not-allowed}
 .btn-sm{padding:.35rem .8rem;font-size:.75rem}
-.btn-green{background:var(--green);color:#fff}
-.btn-green:hover{background:var(--green2)}
-.btn-outline{background:transparent;border:1px solid var(--border2);color:var(--tx2)}
-.btn-outline:hover{border-color:var(--tx2);color:var(--tx)}
-
+.btn-green{background:var(--green);color:#111}.btn-green:hover{background:#00c864}
+.btn-outline{background:transparent;border:1px solid var(--border2);color:var(--tx2)}.btn-outline:hover{border-color:var(--tx2);color:var(--tx)}
+.btn-amber{background:var(--amber);color:#111}.btn-amber:hover{background:#e69900}
 .tbl-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:.8rem}
 th{font-family:'JetBrains Mono',monospace;font-size:.7rem;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;padding:.5rem .6rem;text-align:left;border-bottom:1px solid var(--border2);white-space:nowrap}
 td{padding:.5rem .6rem;border-bottom:1px solid var(--border);color:var(--tx2);white-space:nowrap}
 tr:hover td{background:rgba(255,255,255,.02)}
-tr.selected td{background:var(--blue-bg);color:var(--tx)}
-.clickable{cursor:pointer}
-
 .spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--border2);border-top-color:var(--blue);border-radius:50%;animation:spin .6s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-bar{height:2px;background:var(--bg3);overflow:hidden;border-radius:1px;margin:.5rem 0}
 .loading-bar .fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--cyan));animation:load 1.5s ease-in-out infinite;transform-origin:left}
 @keyframes load{0%{transform:scaleX(0)}50%{transform:scaleX(.7)}100%{transform:scaleX(0)}}
-
-.score-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
-@media(max-width:900px){.score-grid{grid-template-columns:1fr}}
-.score-total{font-family:'JetBrains Mono',monospace;font-size:2.5rem;font-weight:700;text-align:center;padding:1rem}
-.score-total.positive{color:var(--green)}
-.score-total.negative{color:var(--red)}
-.score-total.neutral{color:var(--amber)}
-
+.tabs{display:flex;gap:0;border-bottom:2px solid var(--border)}
+.tab{padding:.5rem 1.2rem;font-size:.8rem;font-weight:600;color:var(--tx3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s}
+.tab:hover{color:var(--tx2)}.tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+.tab-panel{display:none;padding-top:1rem}.tab-panel.active{display:block}
+.steps{display:flex;gap:2rem;margin-bottom:1.5rem;flex-wrap:wrap}
+.step{display:flex;align-items:center;gap:.5rem}
+.step-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:700;border:2px solid var(--border2);color:var(--tx3);transition:all .2s}
+.step.active .step-num{border-color:var(--cyan);color:var(--cyan);background:rgba(6,182,212,.1)}
+.step.done .step-num{border-color:var(--green);color:var(--green);background:rgba(0,230,118,.1)}
+.step-label{font-size:.8rem;color:var(--tx3);font-weight:500}.step.active .step-label{color:var(--tx)}.step.done .step-label{color:var(--green)}
+.empty{text-align:center;padding:3rem;color:var(--tx3)}
+.error-box{background:var(--red-bg);border:1px solid rgba(255,61,87,.2);color:var(--red);padding:.75rem 1rem;border-radius:var(--radius);font-size:.85rem;margin:.75rem 0}
+.filing-frame{background:#fff;border-radius:var(--radius);overflow:hidden;margin-top:.75rem}
+.filing-frame iframe{width:100%;height:600px;border:none}
 .truth-table{width:100%;border-collapse:collapse;font-size:.8rem}
 .truth-table th{font-family:'JetBrains Mono',monospace;font-size:.7rem;padding:.6rem .8rem;background:var(--bg3);border:1px solid var(--border);text-align:center;color:var(--tx2);text-transform:uppercase;letter-spacing:.04em}
 .truth-table td{padding:.5rem .8rem;border:1px solid var(--border);text-align:center;font-family:'JetBrains Mono',monospace;font-size:.8rem}
 .truth-table td:nth-child(2){text-align:left;font-family:'DM Sans',sans-serif}
 .truth-table tr.section-header td{background:var(--bg3);font-weight:700;color:var(--tx);font-family:'DM Sans',sans-serif;font-size:.8rem}
 .truth-table tr.total-row td{background:var(--bg4);font-weight:700;color:var(--tx);font-size:.9rem;border-top:2px solid var(--border2)}
-.val-pos{color:var(--green);font-weight:600}
-.val-neg{color:var(--red);font-weight:600}
-.val-zero{color:var(--tx3)}
-.val-na{color:var(--tx3);font-style:italic}
+.val-pos{color:var(--green);font-weight:600}.val-neg{color:var(--red);font-weight:600}.val-zero{color:var(--tx3)}.val-na{color:var(--tx3);font-style:italic}
+.score-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:900px){.score-grid{grid-template-columns:1fr}}
+.mt-1{margin-top:1rem}.hidden{display:none!important}
 
-.note{padding:.3rem .6rem;border-radius:4px;font-size:.75rem;margin:.2rem 0;font-family:'JetBrains Mono',monospace}
-.note.pass{background:var(--green-bg);color:var(--green);border-left:3px solid var(--green)}
-.note.fail{background:var(--red-bg);color:var(--red);border-left:3px solid var(--red)}
-.note.adjust{background:var(--amber-bg);color:var(--amber);border-left:3px solid var(--amber)}
+/* ═══ SCORECARD (Step 4) ═══ */
+.sc{max-width:800px;margin:0 auto}
+.sc-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem}
+.sc-hdr-left .sc-sub{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--green);letter-spacing:.08em;text-transform:uppercase;display:flex;align-items:center;gap:.4rem}
+.sc-hdr-left .sc-sub::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block}
+.sc-hdr-left h2{font-size:1.8rem;font-weight:700;color:var(--tx);margin-top:.2rem;font-family:'DM Sans',serif}
+.sc-hdr-right{text-align:right;font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--tx3);line-height:1.6}
+.sc-divider{height:2px;background:linear-gradient(90deg,var(--green),transparent);margin-bottom:2rem;border-radius:1px}
 
-.diag-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.5rem}
-.diag-item{background:var(--bg3);border-radius:6px;padding:.6rem .8rem}
-.diag-label{font-size:.65rem;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;font-weight:600}
-.diag-value{font-family:'JetBrains Mono',monospace;font-size:1rem;font-weight:600;color:var(--tx);margin-top:.15rem}
+.sc-hero{display:flex;align-items:center;gap:2.5rem;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:2rem;margin-bottom:2rem}
+.sc-donut-wrap{flex-shrink:0;position:relative;width:140px;height:140px}
+.sc-donut-wrap svg{width:140px;height:140px;transform:rotate(-90deg)}
+.sc-donut-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.sc-donut-score{font-family:'JetBrains Mono',monospace;font-size:2.8rem;font-weight:700;line-height:1}
+.sc-donut-max{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--tx3)}
+.sc-bars{flex:1;display:flex;flex-direction:column;gap:.8rem}
+.sc-bar-row{display:flex;align-items:center;gap:1rem}
+.sc-bar-label{font-family:'JetBrains Mono',monospace;font-size:.7rem;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;width:90px;text-align:right}
+.sc-bar-track{flex:1;height:28px;background:var(--bg4);border-radius:4px;position:relative;overflow:hidden}
+.sc-bar-fill{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:.6rem;font-family:'JetBrains Mono',monospace;font-size:.8rem;font-weight:600;transition:width .6s ease}
+.sc-verdict{background:rgba(0,230,118,.08);border:1px solid rgba(0,230,118,.2);border-radius:8px;padding:.6rem 1rem;text-align:center;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:.5rem;margin-top:1rem}
+.sc-verdict::before{content:'';width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.sc-verdict.positive{color:var(--green)}.sc-verdict.positive::before{background:var(--green)}
+.sc-verdict.neutral{color:var(--amber);background:var(--amber-bg);border-color:rgba(255,171,0,.2)}.sc-verdict.neutral::before{background:var(--amber)}
+.sc-verdict.negative{color:var(--red);background:var(--red-bg);border-color:rgba(255,61,87,.2)}.sc-verdict.negative::before{background:var(--red)}
 
-.filing-frame{background:#fff;border-radius:var(--radius);overflow:hidden;margin-top:.75rem}
-.filing-frame iframe{width:100%;height:600px;border:none}
+.sc-section{margin-bottom:2rem}
+.sc-section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)}
+.sc-section-title{display:flex;align-items:center;gap:.6rem;font-family:'JetBrains Mono',monospace;font-size:.85rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.sc-section-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem}
+.sc-section-pts{font-family:'JetBrains Mono',monospace;font-size:.85rem;font-weight:600}
 
-.tabs{display:flex;gap:0;border-bottom:2px solid var(--border)}
-.tab{padding:.5rem 1.2rem;font-size:.8rem;font-weight:600;color:var(--tx3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s}
-.tab:hover{color:var(--tx2)}
-.tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+.sc-item{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:1.2rem 1.4rem;margin-bottom:1rem;border-left:3px solid var(--border2)}
+.sc-item.triggered-bonus{border-left-color:var(--green)}
+.sc-item.triggered-penalty{border-left-color:var(--red)}
+.sc-item.no-penalty{border-left-color:var(--border2)}
+.sc-item-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem}
+.sc-item-name{font-size:1rem;font-weight:700;color:var(--tx)}
+.sc-tag{font-family:'JetBrains Mono',monospace;font-size:.65rem;font-weight:600;padding:3px 10px;border-radius:4px;text-transform:uppercase;letter-spacing:.04em}
+.sc-tag.green{background:rgba(0,230,118,.12);color:var(--green);border:1px solid rgba(0,230,118,.25)}
+.sc-tag.red{background:rgba(255,61,87,.12);color:var(--red);border:1px solid rgba(255,61,87,.25)}
+.sc-tag.gray{background:rgba(100,116,139,.12);color:var(--tx2);border:1px solid rgba(100,116,139,.25)}
+.sc-tag.amber{background:rgba(255,171,0,.12);color:var(--amber);border:1px solid rgba(255,171,0,.25)}
+.sc-body{font-size:.9rem;color:var(--tx2);line-height:1.65;margin-bottom:.8rem}
 
-.tab-panel{display:none;padding-top:1rem}
-.tab-panel.active{display:block}
+.sc-metric{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6rem 1rem;font-family:'JetBrains Mono',monospace;font-size:.8rem;display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem}
+.sc-metric-label{color:var(--tx3)}
+.sc-metric-val{font-weight:600}
+.sc-metric-threshold{color:var(--tx3);font-size:.75rem}
 
-.steps{display:flex;gap:2rem;margin-bottom:1.5rem}
-.step{display:flex;align-items:center;gap:.5rem}
-.step-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:700;border:2px solid var(--border2);color:var(--tx3);transition:all .2s}
-.step.active .step-num{border-color:var(--cyan);color:var(--cyan);background:rgba(6,182,212,.1)}
-.step.done .step-num{border-color:var(--green);color:var(--green);background:rgba(34,197,94,.1)}
-.step-label{font-size:.8rem;color:var(--tx3);font-weight:500}
-.step.active .step-label{color:var(--tx)}
-.step.done .step-label{color:var(--green)}
+.sc-gauge{position:relative;height:6px;background:var(--bg4);border-radius:3px;margin:.6rem 0;overflow:visible}
+.sc-gauge-fill{height:100%;border-radius:3px;transition:width .6s ease;position:relative}
+.sc-gauge-labels{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--tx3);margin-top:.25rem}
 
-.empty{text-align:center;padding:3rem;color:var(--tx3)}
-.error-box{background:var(--red-bg);border:1px solid rgba(239,68,68,.2);color:var(--red);padding:.75rem 1rem;border-radius:var(--radius);font-size:.85rem;margin:.75rem 0}
-.info-box{background:var(--blue-bg);border:1px solid rgba(59,130,246,.2);color:var(--blue);padding:.75rem 1rem;border-radius:var(--radius);font-size:.85rem;margin:.75rem 0}
-.mt-1{margin-top:1rem}
-.hidden{display:none!important}
+.sc-insight{border-left:3px solid var(--amber);background:rgba(255,171,0,.05);padding:.5rem .8rem;border-radius:0 6px 6px 0;margin-top:.6rem}
+.sc-insight.bullish{border-left-color:var(--green);background:rgba(0,230,118,.05)}
+.sc-insight.danger{border-left-color:var(--red);background:rgba(255,61,87,.05)}
+.sc-insight-text{font-size:.8rem;font-style:italic;color:var(--amber)}
+.sc-insight.bullish .sc-insight-text{color:var(--green)}
+.sc-insight.danger .sc-insight-text{color:var(--red)}
+.sc-insight-icon{margin-right:.3rem}
+
+.sc-comparison{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:.6rem 1rem;font-family:'JetBrains Mono',monospace;font-size:.8rem;display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap;margin-bottom:.6rem}
+.sc-cmp-item{display:flex;align-items:center;gap:.4rem}
+.sc-cmp-label{color:var(--tx3);font-size:.75rem}
+.sc-cmp-val{font-weight:600}
+.sc-cmp-sep{color:var(--tx3);font-size:.75rem}
 </style>
 </head>
 <body>
 <div class="app">
   <div class="header">
     <h1>&#9670; SEC FORENSIC FILING ANALYZER</h1>
-    <span class="badge">Claude-Powered</span>
+    <span class="badge">Gemini-Powered</span>
   </div>
-
   <div class="steps">
     <div class="step active" id="step1"><span class="step-num">1</span><span class="step-label">Scan Filings</span></div>
     <div class="step" id="step2"><span class="step-num">2</span><span class="step-label">Select &amp; View</span></div>
     <div class="step" id="step3"><span class="step-num">3</span><span class="step-label">Analyze</span></div>
+    <div class="step" id="step4"><span class="step-num">4</span><span class="step-label">Scorecard</span></div>
   </div>
 
   <!-- STEP 1 -->
   <div class="card" id="scan-card">
     <div class="card-header"><span class="card-title">&#9312; Filing Scanner</span></div>
     <div class="controls">
-      <div class="field" style="flex:1;min-width:300px">
-        <label>Tickers (comma-separated)</label>
-        <input type="text" id="ticker-input" value="AAPL,MSFT,NVDA,AMZN,META,GOOGL,TSLA,AVGO,NFLX,COST,ADBE,AMD,CRM,INTC,QCOM,TXN,INTU,AMGN,BKNG,ISRG,PANW,CRWD,PLTR,APP,DASH,ARM" placeholder="AAPL,MSFT,...">
+      <div class="field" style="flex:1;min-width:300px"><label>Tickers (comma-separated)</label>
+        <input type="text" id="ticker-input" value="AAPL,MSFT,NVDA,AMZN,META,GOOGL,TSLA,AVGO,NFLX,COST,ADBE,AMD,CRM,INTC,QCOM,TXN,INTU,AMGN,BKNG,ISRG,PANW,CRWD,PLTR,APP,DASH,ARM">
       </div>
-      <div class="field">
-        <label>Lookback (days)</label>
-        <input type="number" id="days-input" value="30" min="1" max="120" style="width:80px">
-      </div>
-      <div class="field">
-        <label>&nbsp;</label>
-        <button class="btn btn-primary" id="scan-btn" onclick="startScan()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-          Scan SEC
-        </button>
-      </div>
+      <div class="field"><label>Lookback (days)</label><input type="number" id="days-input" value="30" min="1" max="120" style="width:80px"></div>
+      <div class="field"><label>&nbsp;</label><button class="btn btn-primary" id="scan-btn" onclick="startScan()">&#128269; Scan SEC</button></div>
     </div>
-    <div id="scan-progress" class="hidden mt-1">
-      <div class="loading-bar"><div class="fill"></div></div>
-      <div style="font-size:.75rem;color:var(--tx3)" id="scan-status">Scanning...</div>
-    </div>
+    <div id="scan-progress" class="hidden mt-1"><div class="loading-bar"><div class="fill"></div></div><div style="font-size:.75rem;color:var(--tx3)" id="scan-status">Scanning...</div></div>
     <div id="scan-results" class="mt-1"></div>
   </div>
 
@@ -168,458 +177,338 @@ tr.selected td{background:var(--blue-bg);color:var(--tx)}
   <div class="card hidden" id="select-card">
     <div class="card-header"><span class="card-title">&#9313; Filing Selection</span></div>
     <div id="filing-select-area"></div>
-    <div class="tabs mt-1">
-      <div class="tab active" data-tab="view-tab" onclick="switchTab(this)">Filing View</div>
-      <div class="tab" data-tab="pair-tab" onclick="switchTab(this)">8K / 10Q Pair</div>
-    </div>
-    <div class="tab-panel active" id="view-tab">
-      <div id="filing-viewer"><div class="empty">Select a filing above to preview it.</div></div>
-    </div>
-    <div class="tab-panel" id="pair-tab">
-      <div id="pair-info"><div class="empty">Pair detection will run when you select a filing.</div></div>
-    </div>
+    <div class="tabs mt-1"><div class="tab active" data-tab="view-tab" onclick="switchTab(this)">Filing View</div><div class="tab" data-tab="pair-tab" onclick="switchTab(this)">8K / 10Q Pair</div></div>
+    <div class="tab-panel active" id="view-tab"><div id="filing-viewer"><div class="empty">Select a filing above to preview it.</div></div></div>
+    <div class="tab-panel" id="pair-tab"><div id="pair-info"><div class="empty">Pair detection will run when you select a filing.</div></div></div>
   </div>
 
   <!-- STEP 3 -->
   <div class="card hidden" id="analyze-card">
     <div class="card-header">
       <span class="card-title">&#9314; Forensic Analysis</span>
-      <button class="btn btn-green" id="analyze-btn" onclick="runAnalysis()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v4m0 12v4M2 12h4m12 0h4m-3.5-6.5L17 7m-10 10-1.5 1.5M20.5 17.5 19 17M5 7 3.5 5.5"/></svg>
-        Run Claude Analysis
-      </button>
+      <button class="btn btn-green" id="analyze-btn" onclick="runAnalysis()">&#9881; Run Analysis</button>
     </div>
-    <div id="analyze-progress" class="hidden">
-      <div class="loading-bar"><div class="fill"></div></div>
-      <div style="font-size:.75rem;color:var(--tx3)">Extracting financials via Claude API... This may take 30-60 seconds.</div>
-    </div>
+    <div id="analyze-progress" class="hidden"><div class="loading-bar"><div class="fill"></div></div><div style="font-size:.75rem;color:var(--tx3)">Extracting financials via Gemini API... This may take 30-60 seconds.</div></div>
     <div id="analyze-results"></div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="card hidden" id="scorecard-card">
+    <div class="card-header">
+      <span class="card-title">&#9315; Quarterly Scorecard</span>
+      <button class="btn btn-amber" id="scorecard-btn" onclick="generateScorecard()">&#9733; Generate Scorecard</button>
+    </div>
+    <div id="scorecard-results"></div>
   </div>
 </div>
 
 <script>
-var STATE = {
-  scanResults: [],
-  selectedTicker: null,
-  selectedFiling: null,
-  selectedCompany: null,
-  selectedCik: null,
-  pairFiling: null,
-  analysisResult: null
-};
-
+var STATE = {scanResults:[],selectedTicker:null,selectedFiling:null,selectedCompany:null,selectedCik:null,pairFiling:null,analysisResult:null};
 var API = '';
+function $(id){return document.getElementById(id)}
+function show(id){$(id).classList.remove('hidden')}
+function hide(id){$(id).classList.add('hidden')}
+function setStep(n){[1,2,3,4].forEach(function(i){var el=$('step'+i);el.classList.remove('active','done');if(i<n)el.classList.add('done');if(i===n)el.classList.add('active')})}
+function escHtml(s){if(s==null)return'';var d=document.createElement('div');d.textContent=String(s);return d.innerHTML}
+function switchTab(el){var tabId=el.getAttribute('data-tab');var tabs=el.parentElement.querySelectorAll('.tab');for(var i=0;i<tabs.length;i++)tabs[i].classList.remove('active');el.classList.add('active');var panels=el.parentElement.parentElement.querySelectorAll('.tab-panel');for(var i=0;i<panels.length;i++)panels[i].classList.remove('active');$(tabId).classList.add('active')}
+function fmtVal(v){if(v==null)return'<span class="val-na">N/A</span>';var n=Number(v);if(isNaN(n))return'<span class="val-na">N/A</span>';if(n===0)return'<span class="val-zero">0</span>';if(n>0)return'<span class="val-pos">+'+n+'</span>';return'<span class="val-neg">'+n+'</span>'}
 
-function $(id) { return document.getElementById(id); }
-function show(id) { $(id).classList.remove('hidden'); }
-function hide(id) { $(id).classList.add('hidden'); }
-
-function setStep(n) {
-  [1,2,3].forEach(function(i) {
-    var el = $('step'+i);
-    el.classList.remove('active','done');
-    if (i < n) el.classList.add('done');
-    if (i === n) el.classList.add('active');
-  });
+/* ═══ STEP 1: SCAN ═══ */
+async function startScan(){
+  var tickers=$('ticker-input').value.split(',').map(function(t){return t.trim().toUpperCase()}).filter(Boolean);
+  var days=parseInt($('days-input').value)||30;if(!tickers.length)return;
+  $('scan-btn').disabled=true;show('scan-progress');$('scan-results').innerHTML='';STATE.scanResults=[];
+  var batches=[];for(var i=0;i<tickers.length;i+=10)batches.push(tickers.slice(i,i+10));
+  var processed=0;
+  for(var b=0;b<batches.length;b++){
+    var batch=batches[b];$('scan-status').textContent='Scanning '+(processed+1)+'-'+Math.min(processed+batch.length,tickers.length)+' of '+tickers.length+'...';
+    try{var resp=await fetch(API+'/api/scan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tickers:batch,days:days})});var data=await resp.json();if(data.ok&&data.results)STATE.scanResults=STATE.scanResults.concat(data.results)}catch(e){console.error(e)}
+    processed+=batch.length;
+  }
+  hide('scan-progress');$('scan-btn').disabled=false;renderScanResults();
+}
+function renderScanResults(){
+  var el=$('scan-results');if(!STATE.scanResults.length){el.innerHTML='<div class="empty">No qualifying filings found.</div>';return}
+  var html='<div class="tbl-wrap"><table><thead><tr><th>Ticker</th><th>Company</th><th>Form</th><th>Filing Date</th><th>Report Period</th><th>Action</th></tr></thead><tbody>';
+  for(var i=0;i<STATE.scanResults.length;i++){var r=STATE.scanResults[i],f=r.filings[0];
+    var fb=f.form==='8-K'?'var(--amber-bg);color:var(--amber)':'var(--blue-bg);color:var(--blue)';
+    html+='<tr><td style="font-family:JetBrains Mono,monospace;font-weight:600;color:var(--cyan)">'+escHtml(r.ticker)+'</td><td>'+escHtml(r.company)+'</td><td><span style="padding:2px 6px;border-radius:4px;font-size:.7rem;font-weight:600;background:'+fb+'">'+escHtml(f.form)+'</span></td><td>'+escHtml(f.filing_date)+'</td><td>'+escHtml(f.report_period||'N/A')+'</td><td><button class="btn btn-sm btn-outline" onclick="selectByIndex('+i+')">Select &rarr;</button></td></tr>'}
+  html+='</tbody></table></div>';el.innerHTML=html;
 }
 
-function escHtml(s) {
-  if (s === null || s === undefined) return '';
-  var d = document.createElement('div');
-  d.textContent = String(s);
-  return d.innerHTML;
+/* ═══ STEP 2: SELECT ═══ */
+function selectByIndex(idx){
+  var r=STATE.scanResults[idx];if(!r)return;
+  STATE.selectedTicker=r.ticker;STATE.selectedCik=r.cik;STATE.selectedCompany=r.company;STATE.selectedFiling=r.filings[0];
+  show('select-card');show('analyze-card');setStep(2);$('select-card').scrollIntoView({behavior:'smooth',block:'start'});
+  var html='<div style="margin-bottom:.75rem;font-family:JetBrains Mono,monospace;font-size:1rem"><span style="color:var(--cyan);font-weight:700">'+escHtml(r.ticker)+'</span><span style="color:var(--tx2);margin-left:.5rem">'+escHtml(r.company)+'</span></div>';
+  html+='<div class="controls" style="margin-bottom:.5rem"><div class="field" style="flex:1"><label>Filing</label><select id="filing-select" onchange="onFilingSelect()">';
+  for(var j=0;j<r.filings.length;j++){var fj=r.filings[j];html+='<option value="'+j+'">'+escHtml(fj.filing_date+' | '+fj.form+' | '+fj.accession_number)+'</option>'}
+  html+='</select></div><div class="field"><label>&nbsp;</label><button class="btn btn-sm btn-primary" onclick="loadFiling()">Load Filing</button></div></div>';
+  $('filing-select-area').innerHTML=html;findPair();
+}
+function onFilingSelect(){var idx=parseInt($('filing-select').value);for(var i=0;i<STATE.scanResults.length;i++){if(STATE.scanResults[i].ticker===STATE.selectedTicker){var r=STATE.scanResults[i];if(r.filings[idx])STATE.selectedFiling=r.filings[idx];break}}findPair()}
+async function loadFiling(){if(!STATE.selectedFiling)return;var f=STATE.selectedFiling;$('filing-viewer').innerHTML='<div style="padding:1rem"><div class="spinner"></div> Loading...</div>';try{var resp=await fetch(API+'/api/filing?cik='+STATE.selectedCik+'&accession='+f.accession_number+'&doc='+encodeURIComponent(f.primary_document)+'&form='+f.form);var data=await resp.json();if(data.ok){var blob=new Blob([data.html],{type:'text/html'});$('filing-viewer').innerHTML='<div class="filing-frame"><iframe src="'+URL.createObjectURL(blob)+'" sandbox="allow-same-origin"></iframe></div>'}else{$('filing-viewer').innerHTML='<div class="error-box">'+escHtml(data.error)+'</div>'}}catch(e){$('filing-viewer').innerHTML='<div class="error-box">'+escHtml(e.message)+'</div>'}}
+async function findPair(){if(!STATE.selectedFiling)return;var f=STATE.selectedFiling;$('pair-info').innerHTML='<div style="padding:.5rem"><div class="spinner"></div> Finding pair...</div>';try{var resp=await fetch(API+'/api/pair?cik='+STATE.selectedCik+'&form='+f.form+'&filing_date='+f.filing_date);var data=await resp.json();STATE.pairFiling=data.pair;renderPairInfo()}catch(e){$('pair-info').innerHTML='<div class="error-box">'+escHtml(e.message)+'</div>'}}
+function renderPairInfo(){var f=STATE.selectedFiling,p=STATE.pairFiling,is8k=f.form==='8-K',ek=is8k?f:p,tq=is8k?p:f;
+  var html='<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">';
+  html+='<div style="background:var(--bg3);border-radius:6px;padding:1rem"><div style="font-weight:600;color:var(--amber);margin-bottom:.5rem;font-size:.85rem">8-K (Item 2.02)</div>';
+  html+=ek?'<div style="font-size:.8rem;color:var(--tx2)">Date: '+escHtml(ek.filing_date)+'<br>Accession: '+escHtml(ek.accession_number)+'</div>':'<div style="color:var(--tx3);font-size:.8rem">Not found</div>';
+  html+='</div><div style="background:var(--bg3);border-radius:6px;padding:1rem"><div style="font-weight:600;color:var(--blue);margin-bottom:.5rem;font-size:.85rem">10-Q</div>';
+  html+=tq?'<div style="font-size:.8rem;color:var(--tx2)">Date: '+escHtml(tq.filing_date)+'<br>Accession: '+escHtml(tq.accession_number)+'</div>':'<div style="color:var(--tx3);font-size:.8rem">Not found</div>';
+  html+='</div></div>';$('pair-info').innerHTML=html;
 }
 
-function fmtVal(v) {
-  if (v === null || v === undefined) return '<span class="val-na">N/A</span>';
-  var n = Number(v);
-  if (isNaN(n)) return '<span class="val-na">N/A</span>';
-  if (n === 0) return '<span class="val-zero">0</span>';
-  if (n > 0) return '<span class="val-pos">+' + n + '</span>';
-  return '<span class="val-neg">' + n + '</span>';
+/* ═══ STEP 3: ANALYZE ═══ */
+async function runAnalysis(){
+  if(!STATE.selectedFiling)return;var f=STATE.selectedFiling,is8k=f.form==='8-K',ek=is8k?f:STATE.pairFiling,tq=is8k?STATE.pairFiling:f;
+  $('analyze-btn').disabled=true;show('analyze-progress');$('analyze-results').innerHTML='';setStep(3);
+  try{var resp=await fetch(API+'/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cik:STATE.selectedCik,ticker:STATE.selectedTicker,company:STATE.selectedCompany,eight_k:ek,ten_q:tq})});
+    var data=await resp.json();if(data.ok){STATE.analysisResult=data;renderAnalysis();show('scorecard-card')}else{$('analyze-results').innerHTML='<div class="error-box">'+escHtml(data.error)+'</div>'}
+  }catch(e){$('analyze-results').innerHTML='<div class="error-box">'+escHtml(e.message)+'</div>'}finally{hide('analyze-progress');$('analyze-btn').disabled=false}
+}
+function renderAnalysis(){
+  var r=STATE.analysisResult;if(!r)return;var s8=r.eight_k?r.eight_k.scorecard:null,s10=r.ten_q?r.ten_q.scorecard:null;
+  var html='<div class="card" style="margin-top:1rem;border-color:var(--border2)"><div class="card-header"><span class="card-title">Forensic Truth Table</span></div>'+buildTruthTable(s8,s10)+'</div>';
+  html+='<div class="card mt-1"><div class="card-header"><span class="card-title">Raw Extracted JSON</span></div><div class="score-grid">';
+  html+='<div><div style="font-size:.75rem;color:var(--amber);font-weight:600;margin-bottom:.3rem">8-K JSON</div><textarea rows="12" readonly>'+(r.eight_k?JSON.stringify(r.eight_k.json,null,2):'N/A')+'</textarea></div>';
+  html+='<div><div style="font-size:.75rem;color:var(--blue);font-weight:600;margin-bottom:.3rem">10-Q JSON</div><textarea rows="12" readonly>'+(r.ten_q?JSON.stringify(r.ten_q.json,null,2):'N/A')+'</textarea></div></div></div>';
+  $('analyze-results').innerHTML=html;
+}
+function buildTruthTable(s8,s10){
+  var rows=[{sno:'1',label:'Base Score',key:'base'},{sno:'2',label:'Alpha Scores (Bonuses)',section:true},{sno:'2(a)',label:'Snowflake Rule',key:'snowflake'},{sno:'2(b)',label:'Amazon Exception',key:'amazon'},{sno:'2(c)',label:'Margin Rocket',key:'margin_rocket'},{sno:'3',label:'Penalties',section:true},{sno:'3(a)',label:'Oracle Rule',key:'oracle'},{sno:'3(b)',label:'Target Rule',key:'target'},{sno:'3(c)',label:'Zombie Check',key:'zombie'},{sno:'3(d)',label:'SBC Death Ratio',key:'sbc_death_ratio'},{sno:'3(e)',label:'Channel Stuffing',key:'channel_stuffing'},{sno:'3(f)',label:'Quality Trap',key:'quality_trap'},{sno:'4',label:'Waivers',section:true},{sno:'4(a)',label:'Gain Waiver',key:'gain_waiver'},{sno:'4(b)',label:'Kitchen Sink Bonus',key:'kitchen_sink'},{sno:'',label:'TOTAL',key:'_total',total:true}];
+  function gv(sc,key){if(!sc)return null;if(key==='_total')return sc.total;return(sc.points&&sc.points[key]!==undefined)?sc.points[key]:null}
+  var html='<div class="tbl-wrap"><table class="truth-table"><thead><tr><th style="width:60px">S.No</th><th>Particulars</th><th style="width:80px">8-K</th><th style="width:80px">10-Q</th><th style="width:100px">Delta</th></tr></thead><tbody>';
+  for(var i=0;i<rows.length;i++){var row=rows[i];if(row.section){html+='<tr class="section-header"><td>'+row.sno+'</td><td colspan="4">'+row.label+'</td></tr>';continue}
+    var v8=gv(s8,row.key),v10=gv(s10,row.key),d=(v8!=null&&v10!=null)?v10-v8:null;
+    html+='<tr'+(row.total?' class="total-row"':'')+'><td>'+row.sno+'</td><td style="font-weight:'+(row.total?700:400)+'">'+row.label+'</td><td>'+fmtVal(v8)+'</td><td>'+fmtVal(v10)+'</td><td>'+fmtVal(d)+'</td></tr>'}
+  html+='</tbody></table></div>';return html;
 }
 
-function fmtPct(v) {
-  if (v === null || v === undefined) return 'N/A';
-  return (v * 100).toFixed(1) + '%';
+/* ═══ STEP 4: SCORECARD ═══ */
+function parseFinVal(str,mult){if(str==null)return null;if(typeof str==='number')return str;var s=String(str).trim();if(!s||s.toLowerCase()==='null')return null;var clean=s.replace(/[^\d.\(\)\-]/g,'');var neg=(clean.indexOf('(')>=0&&clean.indexOf(')')>=0)||clean.charAt(0)==='-';clean=clean.replace(/[\(\)\-]/g,'');var v=parseFloat(clean);if(isNaN(v))return null;if(neg)v=-v;return v*mult}
+function normalizeExtracted(dj){
+  var meta=dj.meta||{},data=dj.data||{},u=(meta.reporting_unit||'ones').toLowerCase(),mult=1;
+  if(u.indexOf('thous')>=0)mult=1e3;else if(u.indexOf('mill')>=0)mult=1e6;else if(u.indexOf('bill')>=0)mult=1e9;
+  var r={};for(var cat in data){r[cat]={};if(typeof data[cat]!=='object')continue;for(var k in data[cat])r[cat][k]=parseFinVal(data[cat][k],mult)}return r;
+}
+function fmtDollar(v){if(v==null)return'N/A';var a=Math.abs(v),s=v<0?'-':'';if(a>=1e9)return s+'$'+(a/1e9).toFixed(1)+'B';if(a>=1e6)return s+'$'+(a/1e6).toFixed(1)+'M';if(a>=1e3)return s+'$'+(a/1e3).toFixed(1)+'K';return s+'$'+a.toFixed(0)}
+function fmtP(v,d){if(v==null)return'N/A';return(v*100).toFixed(d||1)+'%'}
+
+function generateScorecard(){
+  var r=STATE.analysisResult;if(!r)return;setStep(4);
+  var html='';var has8=!!r.eight_k,has10=!!r.ten_q;
+  if(has8&&has10){
+    html+='<div class="tabs" id="sc-tabs"><div class="tab active" data-tab="sc-8k-panel" onclick="switchTab(this)">8-K Scorecard</div><div class="tab" data-tab="sc-10q-panel" onclick="switchTab(this)">10-Q Scorecard</div></div>';
+    html+='<div class="tab-panel active" id="sc-8k-panel">'+renderOneScorecard(r.eight_k,'8-K')+'</div>';
+    html+='<div class="tab-panel" id="sc-10q-panel">'+renderOneScorecard(r.ten_q,'10-Q')+'</div>';
+  } else if(has8){html+=renderOneScorecard(r.eight_k,'8-K')}
+  else if(has10){html+=renderOneScorecard(r.ten_q,'10-Q')}
+  else{html='<div class="empty">No analysis data available.</div>'}
+  $('scorecard-results').innerHTML=html;$('scorecard-card').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
-function fmtBps(v) {
-  if (v === null || v === undefined) return 'N/A';
-  return v.toFixed(0) + ' bps';
+function renderOneScorecard(doc,label){
+  var sc=doc.scorecard,dj=doc.json,m=normalizeExtracted(dj),diag=sc.diagnostics,pts=sc.points;
+  var score=sc.total,bonusTotal=0,penaltyTotal=0;
+  for(var k in pts){if(k==='base')continue;if(pts[k]>0)bonusTotal+=pts[k];if(pts[k]<0)penaltyTotal+=pts[k]}
+  var vtype=score>=60?'positive':score>=45?'neutral':'negative';
+  var verdict=score>=60?'Above Average \u2014 Penalty Model Clear':score>=45?'Neutral \u2014 Monitor Key Metrics':'Below Average \u2014 Multiple Flags Raised';
+  var scoreColor=vtype==='positive'?'#00e676':vtype==='neutral'?'#ffab00':'#ff3d57';
+
+  var h='<div class="sc">';
+  // Header
+  h+='<div class="sc-hdr"><div class="sc-hdr-left"><div class="sc-sub">Earnings Quality Engine</div><h2>Quarterly Scorecard</h2></div>';
+  h+='<div class="sc-hdr-right">PENALTY MODEL v2.1<br>'+label+' \u2022 '+escHtml(STATE.selectedTicker)+'</div></div>';
+  h+='<div class="sc-divider"></div>';
+
+  // Hero: donut + bars + verdict
+  var pct=Math.min(score,100)/100, circ=2*Math.PI*54, filled=pct*circ, gap=circ-filled;
+  h+='<div class="sc-hero"><div class="sc-donut-wrap">';
+  h+='<svg viewBox="0 0 140 140"><circle cx="70" cy="70" r="54" stroke="var(--bg4)" stroke-width="10" fill="none"/>';
+  h+='<circle cx="70" cy="70" r="54" stroke="'+scoreColor+'" stroke-width="10" fill="none" stroke-dasharray="'+filled.toFixed(1)+' '+gap.toFixed(1)+'" stroke-linecap="round"/></svg>';
+  h+='<div class="sc-donut-center"><div class="sc-donut-score" style="color:'+scoreColor+'">'+score+'</div><div class="sc-donut-max">/ 100</div></div></div>';
+  h+='<div class="sc-bars">';
+  h+=scBar('Base Score',50,100,'#5a6a8a');
+  h+=scBar('Bonuses',bonusTotal,45,'#00e676');
+  h+=scBar('Penalties',penaltyTotal,-95,'#ff3d57');
+  h+='<div class="sc-verdict '+vtype+'">'+escHtml(verdict)+'</div>';
+  h+='</div></div>';
+
+  // Bonuses Section
+  var bonusItems=buildBonusItems(pts,diag,m,dj);
+  h+='<div class="sc-section"><div class="sc-section-hdr"><div class="sc-section-title"><div class="sc-section-icon" style="background:rgba(0,230,118,.1);color:var(--green)">&#9650;</div>Bonuses Triggered</div>';
+  h+='<div class="sc-section-pts" style="color:var(--green)">'+(bonusTotal>0?'+'+bonusTotal+' pts':'0 pts')+'</div></div>';
+  if(bonusItems.length===0)h+='<div style="color:var(--tx3);padding:1rem;text-align:center;font-size:.85rem">No bonuses triggered this quarter.</div>';
+  for(var i=0;i<bonusItems.length;i++)h+=renderBonusCard(bonusItems[i]);
+  h+='</div>';
+
+  // Penalties Section
+  var penaltyItems=buildPenaltyItems(pts,diag,m,dj);
+  var penaltyLabel=penaltyTotal===0?'0 pts \u2014 All Clear':penaltyTotal+' pts';
+  var penaltyColor=penaltyTotal===0?'var(--green)':'var(--red)';
+  h+='<div class="sc-section"><div class="sc-section-hdr"><div class="sc-section-title"><div class="sc-section-icon" style="background:rgba(255,61,87,.1);color:var(--red)">&#9660;</div>Penalty Checks</div>';
+  h+='<div class="sc-section-pts" style="color:'+penaltyColor+'">'+penaltyLabel+'</div></div>';
+  for(var i=0;i<penaltyItems.length;i++)h+=renderPenaltyCard(penaltyItems[i]);
+  h+='</div></div>';
+  return h;
 }
 
-function switchTab(el) {
-  var tabId = el.getAttribute('data-tab');
-  var tabs = el.parentElement.querySelectorAll('.tab');
-  for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
-  el.classList.add('active');
-  var panels = el.parentElement.parentElement.querySelectorAll('.tab-panel');
-  for (var i = 0; i < panels.length; i++) panels[i].classList.remove('active');
-  $(tabId).classList.add('active');
+function scBar(label,val,maxAbs,color){
+  var displayVal=val>0?'+'+val:val===0?'0':String(val);
+  var pct=Math.min(Math.abs(val)/Math.max(Math.abs(maxAbs),1)*100,100);
+  return'<div class="sc-bar-row"><div class="sc-bar-label">'+label+'</div><div class="sc-bar-track"><div class="sc-bar-fill" style="width:'+Math.max(pct,8)+'%;background:'+color+';color:#111">'+displayVal+'</div></div></div>';
 }
 
-/* ═══════ STEP 1: SCAN ═══════ */
-
-async function startScan() {
-  var tickers = $('ticker-input').value.split(',').map(function(t){ return t.trim().toUpperCase(); }).filter(Boolean);
-  var days = parseInt($('days-input').value) || 30;
-  if (!tickers.length) return;
-
-  $('scan-btn').disabled = true;
-  show('scan-progress');
-  $('scan-results').innerHTML = '';
-  STATE.scanResults = [];
-
-  var batches = [];
-  for (var i = 0; i < tickers.length; i += 10) {
-    batches.push(tickers.slice(i, i + 10));
+/* Build bonus items from scorecard data */
+function buildBonusItems(pts,diag,m,dj){
+  var items=[];
+  if(pts.snowflake>0){
+    var rg=diag.rpo_growth,vg=diag.rev_growth,grade=pts.snowflake>=20?1:2;
+    items.push({name:'Snowflake Rule',tag:'+'+pts.snowflake+' Triggered',body:'RPO grew '+fmtP(rg)+' while Revenue grew '+fmtP(vg)+'. The acceleration triggered the G'+grade+' bonus (+'+pts.snowflake+').',type:'metric',metricRow:{labels:['RPO Growth','Rev Growth'],values:[fmtP(rg),fmtP(vg)]}});
   }
-
-  var processed = 0;
-  for (var b = 0; b < batches.length; b++) {
-    var batch = batches[b];
-    $('scan-status').textContent = 'Scanning batch ' + (processed + 1) + '-' + Math.min(processed + batch.length, tickers.length) + ' of ' + tickers.length + '...';
-    try {
-      var resp = await fetch(API + '/api/scan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tickers: batch, days: days })
-      });
-      var data = await resp.json();
-      if (data.ok && data.results) {
-        STATE.scanResults = STATE.scanResults.concat(data.results);
-      }
-    } catch (e) {
-      console.error('Scan error:', e);
-    }
-    processed += batch.length;
+  if(pts.amazon>0){
+    var fcf=diag.fcf_proxy,ocf=m.ocf?m.ocf.current:null,ni=m.net_income_gaap?m.net_income_gaap.current:null;
+    items.push({name:'Amazon Exception',tag:'+10 Triggered',body:'FCF was negative ('+fmtDollar(fcf)+') but OCF ('+fmtDollar(ocf)+') exceeded Net Income ('+fmtDollar(ni)+'). Heavy CapEx with strong underlying cash generation.',type:'insight',insight:{type:'bullish',text:'Negative FCF driven by investment, not operational weakness'}});
   }
-
-  hide('scan-progress');
-  $('scan-btn').disabled = false;
-  renderScanResults();
+  if(pts.margin_rocket>0){
+    var gm_c=null,gm_p=null,bps=diag.gm_bps_change;
+    var gpc=m.gross_profit?m.gross_profit.current:null,gpp=m.gross_profit?m.gross_profit.prior:null;
+    var rc=m.revenue?m.revenue.current:null,rp=m.revenue?m.revenue.prior:null;
+    if(gpc==null&&rc!=null&&m.cost_of_sales){gpc=rc-(m.cost_of_sales.current||0)}
+    if(gpp==null&&rp!=null&&m.cost_of_sales){gpp=rp-(m.cost_of_sales.prior||0)}
+    if(gpc!=null&&rc)gm_c=gpc/rc;if(gpp!=null&&rp)gm_p=gpp/rp;
+    var grade=pts.margin_rocket>=15?1:2;
+    items.push({name:'Margin Rocket',tag:'+'+pts.margin_rocket+' Triggered',body:'Gross Margin expanded from '+fmtP(gm_p)+' to '+fmtP(gm_c)+' \u2014 a '+(bps?Math.round(bps):'?')+' bps expansion that cleared the G'+grade+' bonus threshold.',type:'margin',prior:fmtP(gm_p),current:fmtP(gm_c),delta:bps?Math.round(bps)+'':'?'});
+  }
+  if(pts.gain_waiver>0){
+    items.push({name:'Gain Waiver',tag:'+5 Triggered',body:'Quality Trap was offset by a transparent one-off gain, earning the +5 waiver.',type:'insight',insight:{type:'bullish',text:'One-off gain identified and waived \u2014 no permanent quality concern'}});
+  }
+  if(pts.kitchen_sink>0){
+    items.push({name:'Kitchen Sink Bonus',tag:'+5 Triggered',body:'Engine detected a "One-off Loss" flag. Management is clearing the decks, often a bullish signal for future quarters.',type:'insight',insight:{type:'bullish',text:'"Kitchen Sink" quarters historically precede positive earnings revisions'}});
+  }
+  return items;
 }
 
-function renderScanResults() {
-  var el = $('scan-results');
-  if (!STATE.scanResults.length) {
-    el.innerHTML = '<div class="empty">No qualifying filings found.</div>';
-    return;
+function renderBonusCard(item){
+  var h='<div class="sc-item triggered-bonus"><div class="sc-item-hdr"><div class="sc-item-name">'+escHtml(item.name)+'</div><div class="sc-tag green">'+escHtml(item.tag)+'</div></div>';
+  h+='<div class="sc-body">'+escHtml(item.body)+'</div>';
+  if(item.type==='margin'){
+    h+='<div class="sc-metric"><span class="sc-metric-label">Prior</span><span class="sc-metric-val" style="color:var(--tx)">'+escHtml(item.prior)+'</span><span style="color:var(--tx3)">&rarr; Current</span><span class="sc-metric-val" style="color:var(--green)">'+escHtml(item.current)+' &#9650; +'+escHtml(item.delta)+' bps</span></div>';
   }
-
-  var html = '<div class="tbl-wrap"><table><thead><tr>';
-  html += '<th>Ticker</th><th>Company</th><th>Form</th><th>Filing Date</th><th>Report Period</th><th>Action</th>';
-  html += '</tr></thead><tbody>';
-
-  for (var i = 0; i < STATE.scanResults.length; i++) {
-    var r = STATE.scanResults[i];
-    var f = r.filings[0];
-    var formBg = f.form === '8-K' ? 'var(--amber-bg);color:var(--amber)' : 'var(--blue-bg);color:var(--blue)';
-    html += '<tr>';
-    html += '<td style="font-family:JetBrains Mono,monospace;font-weight:600;color:var(--cyan)">' + escHtml(r.ticker) + '</td>';
-    html += '<td>' + escHtml(r.company) + '</td>';
-    html += '<td><span style="padding:2px 6px;border-radius:4px;font-size:.7rem;font-weight:600;background:' + formBg + '">' + escHtml(f.form) + '</span></td>';
-    html += '<td>' + escHtml(f.filing_date) + '</td>';
-    html += '<td>' + escHtml(f.report_period || 'N/A') + '</td>';
-    html += '<td><button class="btn btn-sm btn-outline" data-idx="' + i + '" onclick="selectByIndex(' + i + ')">Select &rarr;</button></td>';
-    html += '</tr>';
+  if(item.type==='metric'&&item.metricRow){
+    h+='<div class="sc-comparison">';
+    for(var j=0;j<item.metricRow.labels.length;j++){
+      if(j>0)h+='<span class="sc-cmp-sep">vs</span>';
+      h+='<span class="sc-cmp-item"><span class="sc-cmp-label">'+escHtml(item.metricRow.labels[j])+'</span><span class="sc-cmp-val" style="color:var(--tx)">'+escHtml(item.metricRow.values[j])+'</span></span>';
+    }h+='</div>';
   }
-
-  html += '</tbody></table></div>';
-  el.innerHTML = html;
+  if(item.insight){h+='<div class="sc-insight bullish"><span class="sc-insight-icon">&#9889;</span><span class="sc-insight-text">'+escHtml(item.insight.text)+'</span></div>'}
+  h+='</div>';return h;
 }
 
-/* ═══════ STEP 2: SELECT & VIEW ═══════ */
-
-function selectByIndex(idx) {
-  var r = STATE.scanResults[idx];
-  if (!r) return;
-
-  STATE.selectedTicker = r.ticker;
-  STATE.selectedCik = r.cik;
-  STATE.selectedCompany = r.company;
-  STATE.selectedFiling = r.filings[0];
-
-  show('select-card');
-  show('analyze-card');
-  setStep(2);
-
-  var html = '<div style="margin-bottom:.75rem;font-family:JetBrains Mono,monospace;font-size:1rem">';
-  html += '<span style="color:var(--cyan);font-weight:700">' + escHtml(r.ticker) + '</span>';
-  html += '<span style="color:var(--tx2);margin-left:.5rem">' + escHtml(r.company) + '</span>';
-  html += '</div>';
-  html += '<div class="controls" style="margin-bottom:.5rem"><div class="field" style="flex:1"><label>Filing</label><select id="filing-select" onchange="onFilingSelect()">';
-
-  for (var j = 0; j < r.filings.length; j++) {
-    var fj = r.filings[j];
-    var lbl = fj.filing_date + ' | ' + fj.form + ' | ' + fj.accession_number;
-    html += '<option value="' + j + '">' + escHtml(lbl) + '</option>';
+/* Build penalty items — always show all 6 checks */
+function buildPenaltyItems(pts,diag,m,dj){
+  var items=[];
+  // Oracle Rule
+  var ocf_ni=diag.ocf_net_income_ratio,ocfV=m.ocf?m.ocf.current:null,niV=m.net_income_gaap?m.net_income_gaap.current:null;
+  var oracleTriggered=pts.oracle<0;
+  if(ocf_ni!=null){
+    var body=oracleTriggered?'OCF ('+fmtDollar(ocfV)+') / Net Income ('+fmtDollar(niV)+') = '+ocf_ni.toFixed(2)+'x. Below the safety floor \u2014 cash earnings quality is weak.':'OCF / Net Income ratio of '+ocf_ni.toFixed(2)+'x is above the 1.0x safety threshold.';
+    items.push({name:'Oracle Rule',triggered:oracleTriggered,pts:pts.oracle,tag:oracleTriggered?pts.oracle+' Penalty':'No Penalty',body:body,
+      metricRow:{label:'OCF / Net Income',value:ocf_ni.toFixed(2)+'x',threshold:'Threshold: 1.0x',valueColor:oracleTriggered?'#ff3d57':ocf_ni<1.1?'#ffab00':'#00e676'},
+      gauge:{value:Math.min((1/Math.max(ocf_ni,0.01))*100,100),max:'1.0x',warn:ocf_ni<1.1,left:'High',right:'1.0x'}});
   }
-
-  html += '</select></div>';
-  html += '<div class="field"><label>&nbsp;</label><button class="btn btn-sm btn-primary" onclick="loadFiling()">Load Filing</button></div></div>';
-  $('filing-select-area').innerHTML = html;
-
-  findPair();
+  // Target Rule
+  var gm_bps=diag.gm_bps_change,targetTriggered=pts.target<0;
+  if(gm_bps!=null){
+    var body=targetTriggered?'Gross Margin contracted by '+Math.abs(Math.round(gm_bps))+' bps \u2014 exceeding the penalty threshold.':'Gross Margin moved '+Math.round(gm_bps)+' bps \u2014 within acceptable bounds.';
+    var closeCall=!targetTriggered&&gm_bps<0&&gm_bps>-50;
+    items.push({name:'Target Rule',triggered:targetTriggered,pts:pts.target,tag:targetTriggered?pts.target+' Penalty':closeCall?'No Penalty - Close Call':'No Penalty',body:body,
+      metricRow:{label:'GM Change',value:Math.round(gm_bps)+' bps',threshold:'Threshold: -50 bps',valueColor:targetTriggered?'#ff3d57':closeCall?'#ffab00':'#00e676'},
+      gauge:null,closeCall:closeCall,
+      insight:closeCall?{type:'warning',text:'Margin under pressure \u2014 monitor next quarter.'}:targetTriggered?{type:'danger',text:'Significant margin erosion detected.'}:null});
+  }
+  // Zombie Check
+  var int_oi=diag.interest_op_income_ratio,zombieTriggered=pts.zombie<0;
+  if(int_oi!=null){
+    var pctVal=(int_oi*100).toFixed(1);
+    var body=zombieTriggered?'Interest consumes '+pctVal+'% of Operating Income \u2014 exceeding the danger threshold.':'Interest / Operating Income at '+pctVal+'% is within safe limits.';
+    var closeCall=!zombieTriggered&&int_oi>=0.15;
+    items.push({name:'Zombie Check',triggered:zombieTriggered,pts:pts.zombie,tag:zombieTriggered?pts.zombie+' Penalty':closeCall?'No Penalty - Close Call':'No Penalty',body:body,
+      metricRow:{label:'Interest / Op. Income',value:pctVal+'%',threshold:'Threshold: 20%',valueColor:zombieTriggered?'#ff3d57':closeCall?'#ffab00':'#00e676'},
+      gauge:{value:Math.min((int_oi/0.40)*100,100),warn:int_oi>=0.15,left:'0%',right:'40%'},closeCall:closeCall,
+      insight:closeCall?{type:'warning',text:'Approaching debt burden threshold.'}:zombieTriggered?{type:'danger',text:'Heavy debt load consuming operating profits.'}:null});
+  }
+  // SBC Death Ratio
+  var sbc_ocf=diag.sbc_ocf_ratio,sbcTriggered=pts.sbc_death_ratio<0;
+  var sbcV=m.sbc_expense?m.sbc_expense.current:null;
+  if(sbc_ocf!=null){
+    var pctVal=(sbc_ocf*100).toFixed(1);var closeCall=!sbcTriggered&&sbc_ocf>=0.08;
+    var body=sbcTriggered?'SBC ('+fmtDollar(sbcV)+') \u00F7 OCF ('+fmtDollar(ocfV)+') = '+pctVal+'%. Exceeds the threshold.':closeCall?'SBC ('+fmtDollar(sbcV)+') \u00F7 OCF ('+fmtDollar(ocfV)+') = '+pctVal+'%. Narrowly within limits.':'SBC / OCF ratio at '+pctVal+'% is well within safe limits.';
+    items.push({name:'SBC Death Ratio',triggered:sbcTriggered,pts:pts.sbc_death_ratio,tag:sbcTriggered?pts.sbc_death_ratio+' Penalty':closeCall?'No Penalty - Close Call':'No Penalty',body:body,
+      metricRow:{label:'SBC / OCF',value:pctVal+'%',threshold:'Threshold: 10%',valueColor:sbcTriggered?'#ff3d57':closeCall?'#ffab00':'#00e676'},
+      gauge:{value:Math.min((sbc_ocf/0.30)*100,100),warn:sbc_ocf>=0.08,left:'0%',right:'30%'},closeCall:closeCall,
+      insight:closeCall?{type:'warning',text:'Close call \u2014 monitor next quarter.'}:sbcTriggered?{type:'danger',text:'Excessive stock-based compensation diluting cash flow.'}:null});
+  }
+  // Channel Stuffing
+  var ar_g=diag.ar_growth,rev_g=diag.rev_growth,chTriggered=pts.channel_stuffing<0;
+  if(ar_g!=null&&rev_g!=null){
+    var spread=((ar_g-rev_g)*100).toFixed(1);var spreadPct=ar_g-rev_g;var closeCall=!chTriggered&&spreadPct>0.03;
+    var body=chTriggered?'A/R grew '+fmtP(ar_g)+' vs Revenue growth of '+fmtP(rev_g)+'. The '+spread+'% spread exceeds the safe zone.':'A/R grew '+fmtP(ar_g)+' while Revenue grew '+fmtP(rev_g)+'. The '+spread+'% spread is within the safe zone.';
+    items.push({name:'Channel Stuffing',triggered:chTriggered,pts:pts.channel_stuffing,tag:chTriggered?pts.channel_stuffing+' Penalty':'No Penalty',body:body,
+      comparison:[{label:'A/R Growth',value:fmtP(ar_g),color:chTriggered?'#ff3d57':'#e8e8f0'},{label:'Rev Growth',value:fmtP(rev_g),color:'#e8e8f0'},{label:'Spread',value:spread+'%',color:chTriggered?'#ff3d57':'#00e676'}],
+      gauge:{value:Math.min((Math.max(spreadPct,0)/0.10)*100,100),warn:spreadPct>0.03,left:'0%',right:'10%'},closeCall:closeCall,
+      insight:chTriggered?{type:'danger',text:'Revenue may be front-loaded through channel partners.'}:null});
+  }
+  // Quality Trap
+  var niVal=m.net_income_gaap?m.net_income_gaap.current:null,oiVal=m.operating_income?m.operating_income.current:null,qtTriggered=pts.quality_trap<0;
+  if(niVal!=null&&oiVal!=null){
+    var isClean=niVal<=oiVal;
+    var body=isClean?'Net Income ('+fmtDollar(niVal)+') came in below Operating Income ('+fmtDollar(oiVal)+') \u2014 confirming earnings are not artificially inflated.':'Net Income ('+fmtDollar(niVal)+') exceeds Operating Income ('+fmtDollar(oiVal)+'), suggesting inflation from non-operating gains.';
+    items.push({name:'Quality Trap',triggered:qtTriggered,pts:pts.quality_trap,tag:qtTriggered?pts.quality_trap+' Penalty':'No Penalty',body:body,
+      quality:{netIncome:fmtDollar(niVal),opIncome:fmtDollar(oiVal),isClean:isClean},
+      insight:qtTriggered?{type:'danger',text:'Strip non-operating gains before valuation.'}:null});
+  }
+  return items;
 }
 
-function onFilingSelect() {
-  var idx = parseInt($('filing-select').value);
-  var r = null;
-  for (var i = 0; i < STATE.scanResults.length; i++) {
-    if (STATE.scanResults[i].ticker === STATE.selectedTicker) { r = STATE.scanResults[i]; break; }
+function renderPenaltyCard(item){
+  var borderColor=item.triggered?'var(--red)':item.closeCall?'var(--amber)':'var(--border2)';
+  var tagClass=item.triggered?'red':item.closeCall?'amber':'gray';
+  var h='<div class="sc-item" style="border-left-color:'+borderColor+'"><div class="sc-item-hdr"><div class="sc-item-name">'+escHtml(item.name)+'</div><div class="sc-tag '+tagClass+'">'+escHtml(item.tag)+'</div></div>';
+  h+='<div class="sc-body">'+escHtml(item.body)+'</div>';
+  // Metric row
+  if(item.metricRow){
+    h+='<div class="sc-metric"><span class="sc-metric-label">'+escHtml(item.metricRow.label)+'</span><span class="sc-metric-val" style="color:'+item.metricRow.valueColor+'">'+escHtml(item.metricRow.value)+'</span><span class="sc-metric-threshold">'+escHtml(item.metricRow.threshold)+'</span></div>';
   }
-  if (r && r.filings[idx]) {
-    STATE.selectedFiling = r.filings[idx];
-    findPair();
+  // Comparison row (channel stuffing)
+  if(item.comparison){
+    h+='<div class="sc-comparison">';
+    for(var j=0;j<item.comparison.length;j++){
+      if(j===1)h+='<span class="sc-cmp-sep">vs</span>';
+      if(j===2)h+='<span class="sc-cmp-sep">&rarr;</span>';
+      h+='<span class="sc-cmp-item"><span class="sc-cmp-label">'+escHtml(item.comparison[j].label)+'</span><span class="sc-cmp-val" style="color:'+item.comparison[j].color+'">'+escHtml(item.comparison[j].value)+'</span></span>';
+    }h+='</div>';
   }
-}
-
-async function loadFiling() {
-  if (!STATE.selectedFiling) return;
-  var f = STATE.selectedFiling;
-  $('filing-viewer').innerHTML = '<div style="padding:1rem"><div class="spinner"></div> Loading filing...</div>';
-  try {
-    var url = API + '/api/filing?cik=' + STATE.selectedCik + '&accession=' + f.accession_number + '&doc=' + encodeURIComponent(f.primary_document) + '&form=' + f.form;
-    var resp = await fetch(url);
-    var data = await resp.json();
-    if (data.ok) {
-      var blob = new Blob([data.html], { type: 'text/html' });
-      var blobUrl = URL.createObjectURL(blob);
-      $('filing-viewer').innerHTML = '<div class="filing-frame"><iframe src="' + blobUrl + '" sandbox="allow-same-origin"></iframe></div>';
-    } else {
-      $('filing-viewer').innerHTML = '<div class="error-box">' + escHtml(data.error) + '</div>';
-    }
-  } catch (e) {
-    $('filing-viewer').innerHTML = '<div class="error-box">' + escHtml(e.message) + '</div>';
+  // Quality trap row
+  if(item.quality){
+    var q=item.quality;
+    h+='<div class="sc-metric"><span class="sc-metric-label">Net Income</span><span class="sc-metric-val" style="color:var(--tx)">'+escHtml(q.netIncome)+'</span><span style="color:var(--tx3)">'+(q.isClean?'&lt;':'&gt;')+'</span><span class="sc-metric-label">Op. Income</span><span class="sc-metric-val" style="color:var(--tx)">'+escHtml(q.opIncome)+'</span><span style="color:'+(q.isClean?'var(--green)':'var(--red)')+'">'+( q.isClean?'&#10003; Clean':'Inflated')+'</span></div>';
   }
-}
-
-async function findPair() {
-  if (!STATE.selectedFiling) return;
-  var f = STATE.selectedFiling;
-  $('pair-info').innerHTML = '<div style="padding:.5rem"><div class="spinner"></div> Finding 8K/10Q pair...</div>';
-  try {
-    var resp = await fetch(API + '/api/pair?cik=' + STATE.selectedCik + '&form=' + f.form + '&filing_date=' + f.filing_date);
-    var data = await resp.json();
-    STATE.pairFiling = data.pair;
-    renderPairInfo();
-  } catch (e) {
-    $('pair-info').innerHTML = '<div class="error-box">' + escHtml(e.message) + '</div>';
+  // Gauge bar
+  if(item.gauge){
+    var g=item.gauge;var gColor=g.warn?(g.value>90?'linear-gradient(90deg,#00e676,#ffab00,#ff3d57)':'linear-gradient(90deg,#00e676,#ffab00)'):'linear-gradient(90deg,#00e676,#00e676)';
+    h+='<div class="sc-gauge"><div class="sc-gauge-fill" style="width:'+Math.min(g.value,100)+'%;background:'+gColor+';border-radius:3px"></div></div>';
+    h+='<div class="sc-gauge-labels"><span>'+escHtml(g.left)+'</span><span>'+escHtml(g.right)+'</span></div>';
   }
-}
-
-function renderPairInfo() {
-  var f = STATE.selectedFiling;
-  var p = STATE.pairFiling;
-  var is8k = f.form === '8-K';
-  var ek = is8k ? f : p;
-  var tq = is8k ? p : f;
-
-  var html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">';
-
-  html += '<div style="background:var(--bg3);border-radius:6px;padding:1rem">';
-  html += '<div style="font-weight:600;color:var(--amber);margin-bottom:.5rem;font-size:.85rem">8-K (Item 2.02)</div>';
-  if (ek) {
-    html += '<div style="font-size:.8rem;color:var(--tx2)">Date: ' + escHtml(ek.filing_date) + '<br>Accession: ' + escHtml(ek.accession_number) + '</div>';
-  } else {
-    html += '<div style="color:var(--tx3);font-size:.8rem">Not found</div>';
+  // Insight
+  if(item.insight){
+    var itype=item.insight.type==='danger'?'danger':item.insight.type==='bullish'?'bullish':'';
+    var icon=item.insight.type==='danger'?'&#9888;':item.insight.type==='warning'?'&#9888;':'&#9889;';
+    h+='<div class="sc-insight '+itype+'"><span class="sc-insight-icon">'+icon+'</span><span class="sc-insight-text">'+escHtml(item.insight.text)+'</span></div>';
   }
-  html += '</div>';
-
-  html += '<div style="background:var(--bg3);border-radius:6px;padding:1rem">';
-  html += '<div style="font-weight:600;color:var(--blue);margin-bottom:.5rem;font-size:.85rem">10-Q</div>';
-  if (tq) {
-    html += '<div style="font-size:.8rem;color:var(--tx2)">Date: ' + escHtml(tq.filing_date) + '<br>Accession: ' + escHtml(tq.accession_number) + '</div>';
-  } else {
-    html += '<div style="color:var(--tx3);font-size:.8rem">Not found within 120 days</div>';
-  }
-  html += '</div></div>';
-
-  $('pair-info').innerHTML = html;
-}
-
-/* ═══════ STEP 3: ANALYZE ═══════ */
-
-async function runAnalysis() {
-  if (!STATE.selectedFiling) return;
-  var f = STATE.selectedFiling;
-  var is8k = f.form === '8-K';
-  var ek = is8k ? f : STATE.pairFiling;
-  var tq = is8k ? STATE.pairFiling : f;
-
-  $('analyze-btn').disabled = true;
-  show('analyze-progress');
-  $('analyze-results').innerHTML = '';
-  setStep(3);
-
-  try {
-    var resp = await fetch(API + '/api/analyze', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        cik: STATE.selectedCik,
-        ticker: STATE.selectedTicker,
-        company: STATE.selectedCompany,
-        eight_k: ek,
-        ten_q: tq
-      })
-    });
-    var data = await resp.json();
-    if (data.ok) {
-      STATE.analysisResult = data;
-      renderAnalysis();
-    } else {
-      $('analyze-results').innerHTML = '<div class="error-box"><strong>Analysis failed:</strong> ' + escHtml(data.error) + '</div>';
-    }
-  } catch (e) {
-    $('analyze-results').innerHTML = '<div class="error-box">' + escHtml(e.message) + '</div>';
-  } finally {
-    hide('analyze-progress');
-    $('analyze-btn').disabled = false;
-  }
-}
-
-function renderAnalysis() {
-  var r = STATE.analysisResult;
-  if (!r) return;
-  var s8 = r.eight_k ? r.eight_k.scorecard : null;
-  var s10 = r.ten_q ? r.ten_q.scorecard : null;
-  var html = '';
-
-  // Truth Table
-  html += '<div class="card" style="margin-top:1rem;border-color:var(--border2)">';
-  html += '<div class="card-header"><span class="card-title">Forensic Truth Table</span></div>';
-  html += buildTruthTable(s8, s10);
-  html += '</div>';
-
-  // Score Cards
-  html += '<div class="score-grid mt-1">';
-
-  html += '<div class="card" style="border-color:var(--amber);border-width:1px 1px 1px 3px">';
-  html += '<div class="card-header"><span class="card-title" style="color:var(--amber)">8-K Scorecard</span></div>';
-  if (s8) {
-    var c8 = s8.total >= 60 ? 'positive' : s8.total < 40 ? 'negative' : 'neutral';
-    html += '<div class="score-total ' + c8 + '">' + s8.total + '</div>';
-    html += renderNotes(s8.notes);
-    html += renderDiagnostics(s8.diagnostics);
-  } else {
-    html += '<div class="empty">N/A</div>';
-  }
-  html += '</div>';
-
-  html += '<div class="card" style="border-color:var(--blue);border-width:1px 1px 1px 3px">';
-  html += '<div class="card-header"><span class="card-title" style="color:var(--blue)">10-Q Scorecard</span></div>';
-  if (s10) {
-    var c10 = s10.total >= 60 ? 'positive' : s10.total < 40 ? 'negative' : 'neutral';
-    html += '<div class="score-total ' + c10 + '">' + s10.total + '</div>';
-    html += renderNotes(s10.notes);
-    html += renderDiagnostics(s10.diagnostics);
-  } else {
-    html += '<div class="empty">N/A</div>';
-  }
-  html += '</div></div>';
-
-  // Raw JSON
-  html += '<div class="card mt-1"><div class="card-header"><span class="card-title">Raw Extracted JSON</span></div>';
-  html += '<div class="score-grid">';
-  html += '<div><div style="font-size:.75rem;color:var(--amber);font-weight:600;margin-bottom:.3rem">8-K JSON</div>';
-  html += '<textarea rows="16" readonly>' + (r.eight_k ? JSON.stringify(r.eight_k.json, null, 2) : 'N/A') + '</textarea></div>';
-  html += '<div><div style="font-size:.75rem;color:var(--blue);font-weight:600;margin-bottom:.3rem">10-Q JSON</div>';
-  html += '<textarea rows="16" readonly>' + (r.ten_q ? JSON.stringify(r.ten_q.json, null, 2) : 'N/A') + '</textarea></div>';
-  html += '</div></div>';
-
-  $('analyze-results').innerHTML = html;
-}
-
-function buildTruthTable(s8, s10) {
-  var rows = [
-    { sno: '1', label: 'Base Score', key: 'base' },
-    { sno: '2', label: 'Alpha Scores (Bonuses)', section: true },
-    { sno: '2(a)', label: 'Snowflake Rule', key: 'snowflake' },
-    { sno: '2(b)', label: 'Amazon Exception', key: 'amazon' },
-    { sno: '2(c)', label: 'Margin Rocket', key: 'margin_rocket' },
-    { sno: '3', label: 'Penalties', section: true },
-    { sno: '3(a)', label: 'Oracle Rule', key: 'oracle' },
-    { sno: '3(b)', label: 'Target Rule', key: 'target' },
-    { sno: '3(c)', label: 'Zombie Check', key: 'zombie' },
-    { sno: '3(d)', label: 'SBC Death Ratio', key: 'sbc_death_ratio' },
-    { sno: '3(e)', label: 'Channel Stuffing', key: 'channel_stuffing' },
-    { sno: '3(f)', label: 'Quality Trap', key: 'quality_trap' },
-    { sno: '4', label: 'Waivers', section: true },
-    { sno: '4(a)', label: 'Gain Waiver', key: 'gain_waiver' },
-    { sno: '4(b)', label: 'Kitchen Sink Bonus', key: 'kitchen_sink' },
-    { sno: '', label: 'TOTAL', key: '_total', total: true }
-  ];
-
-  function getVal(sc, key) {
-    if (!sc) return null;
-    if (key === '_total') return sc.total;
-    return (sc.points && sc.points[key] !== undefined) ? sc.points[key] : null;
-  }
-
-  var html = '<div class="tbl-wrap"><table class="truth-table"><thead><tr>';
-  html += '<th style="width:60px">S. No</th><th>Particulars</th><th style="width:80px">8-K</th><th style="width:80px">10-Q</th><th style="width:120px">Delta</th>';
-  html += '</tr></thead><tbody>';
-
-  for (var i = 0; i < rows.length; i++) {
-    var row = rows[i];
-    if (row.section) {
-      html += '<tr class="section-header"><td>' + row.sno + '</td><td colspan="4">' + row.label + '</td></tr>';
-      continue;
-    }
-    var v8 = getVal(s8, row.key);
-    var v10 = getVal(s10, row.key);
-    var delta = (v8 !== null && v10 !== null) ? v10 - v8 : null;
-    var cls = row.total ? ' class="total-row"' : '';
-    html += '<tr' + cls + '>';
-    html += '<td>' + row.sno + '</td>';
-    html += '<td style="font-weight:' + (row.total ? 700 : 400) + '">' + row.label + '</td>';
-    html += '<td>' + fmtVal(v8) + '</td>';
-    html += '<td>' + fmtVal(v10) + '</td>';
-    html += '<td>' + fmtVal(delta) + '</td>';
-    html += '</tr>';
-  }
-
-  html += '</tbody></table></div>';
-  return html;
-}
-
-function renderNotes(notes) {
-  if (!notes || !notes.length) return '<div style="color:var(--tx3);font-size:.75rem;padding:.5rem">No triggered rules.</div>';
-  var html = '<div style="margin-top:.5rem">';
-  for (var i = 0; i < notes.length; i++) {
-    var n = notes[i];
-    var cls = 'adjust';
-    if (n.indexOf('PASS') === 0) cls = 'pass';
-    else if (n.indexOf('FAIL') === 0) cls = 'fail';
-    html += '<div class="note ' + cls + '">' + escHtml(n) + '</div>';
-  }
-  html += '</div>';
-  return html;
-}
-
-function renderDiagnostics(diag) {
-  if (!diag) return '';
-  var items = [
-    { label: 'Rev Growth', val: diag.rev_growth, fmt: fmtPct },
-    { label: 'RPO Growth', val: diag.rpo_growth, fmt: fmtPct },
-    { label: 'AR Growth', val: diag.ar_growth, fmt: fmtPct },
-    { label: 'GM Change (bps)', val: diag.gm_bps_change, fmt: fmtBps },
-    { label: 'FCF Proxy', val: diag.fcf_proxy, fmt: function(v) { return v != null ? v.toLocaleString() : 'N/A'; } },
-    { label: 'OCF/NI', val: diag.ocf_net_income_ratio, fmt: function(v) { return v != null ? v.toFixed(2) : 'N/A'; } },
-    { label: 'Int/OpInc', val: diag.interest_op_income_ratio, fmt: function(v) { return v != null ? v.toFixed(2) : 'N/A'; } },
-    { label: 'SBC/OCF', val: diag.sbc_ocf_ratio, fmt: function(v) { return v != null ? v.toFixed(2) : 'N/A'; } }
-  ];
-  var html = '<div class="diag-grid" style="margin-top:.75rem">';
-  for (var i = 0; i < items.length; i++) {
-    var it = items[i];
-    var display = (it.val !== null && it.val !== undefined) ? it.fmt(it.val) : 'N/A';
-    html += '<div class="diag-item"><div class="diag-label">' + it.label + '</div><div class="diag-value">' + display + '</div></div>';
-  }
-  html += '</div>';
-  return html;
+  h+='</div>';return h;
 }
 </script>
 </body>
