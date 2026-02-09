@@ -1,15 +1,3 @@
-"""
-SEC Filings Analyzer — Vercel Serverless Backend (Flask)
-Uses Google Gemini for financial data extraction.
-
-Routes:
-  GET  /api/metadata      -> ticker-to-CIK map
-  POST /api/scan           -> check batch of tickers for qualifying filings
-  GET  /api/filing         -> fetch filing HTML
-  POST /api/analyze        -> Gemini extraction + scoring
-  GET  /api/pair           -> find 8K/10Q pair for a filing
-"""
-
 import os, re, json, time, traceback
 from datetime import datetime, timedelta, date, timezone
 from typing import Dict, Optional, List, Any, Tuple
@@ -53,7 +41,7 @@ def get_gemini_model():
         raise ValueError("GEMINI_API_KEY environment variable not set")
     genai.configure(api_key=api_key)
     _gemini_model = genai.GenerativeModel(
-        model_name="gemini-2.5-flash-preview-05-20",
+        model_name="gemini-3-pro-preview",
         system_instruction=(
             "You are a disciplined, data-driven investment analyst. "
             "Do not fabricate, estimate, or assume any facts, numbers, or figures. "
