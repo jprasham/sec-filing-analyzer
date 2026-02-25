@@ -2,14 +2,8 @@ import os, re, json, time, traceback
 from datetime import datetime, timedelta, date, timezone
 from typing import Dict, Optional, List, Any, Tuple
 from flask import Flask, request, jsonify, Response
-
 import requests as http_req
-
-try:
-    import google.generativeai as genai
-except ImportError:
-    genai = None
-
+import anthropic
 try:
     from zoneinfo import ZoneInfo
 except Exception:
@@ -27,35 +21,32 @@ SEC_AH = {"User-Agent": SEC_UA, "Accept-Encoding": "gzip, deflate", "Host": "www
 # ── Flask app ─────────────────────────────────────────────
 app = Flask(__name__)
 
-# ── Gemini setup ──────────────────────────────────────────
-_gemini_model = None
+# ── Claude setup ──────────────────────────────────────────
 
-def get_gemini_model():
-    global _gemini_model
-    if _gemini_model is not None:
-        return _gemini_model
-    if not genai:
-        raise ValueError("google-generativeai package not available")
-    api_key = os.environ.get("GEMINI_API_KEY")
-    if not api_key:
-        raise ValueError("GEMINI_API_KEY environment variable not set")
-    genai.configure(api_key=api_key)
-    _gemini_model = genai.GenerativeModel(
-        model_name="gemini-3-pro-preview",
-        system_instruction=(
-            "You are a disciplined, data-driven investment analyst. "
-            "Do not fabricate, estimate, or assume any facts, numbers, or figures. "
-            "If data is unavailable, use the string \"null\" where instructed. "
-            "When instructed to output STRICT JSON, output only valid JSON with no extra text."
-        ),
-    )
-    return _gemini_model
+client_claude = anthropic.Anthropic(
+    api_key=os.environ.get("CLAUDE_API_KEY")
+)
 
+SYSTEM_INSTRUCTION = (
+    "You are a disciplined, data-driven investment analyst. "
+    "Do not fabricate, estimate, or assume any facts, numbers, or figures. "
+    "If data is unavailable, clearly state so without speculation. "
+    "Keep the output as concise as possible without losing the depth of analysis."
+)
 
-def query_gemini(prompt: str) -> str:
-    model = get_gemini_model()
-    resp = model.generate_content(prompt)
-    return getattr(resp, "text", str(resp))
+def query_claude(prompt: str) -> str:
+    try:
+        message = client_claude.messages.create(
+            model="claude-sonnet-4-5-20250929",
+            max_tokens=4096,
+            temperature=0,
+            system=SYSTEM_INSTRUCTION,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return message.content[0].text
+    except Exception as e:
+        return f"Error querying Claude: {e}"
+        
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -619,7 +610,7 @@ def extract_with_gemini(filing_text: str, doc_type: str) -> dict:
     filing_text = (filing_text or "")[:MAX_CHARS]
 
     prompt = EXTRACTION_PROMPT.format(doc_type=doc_type, filing_text=filing_text)
-    raw = query_gemini(prompt)
+    raw = query_claude(prompt)
 
     try:
         data = _clean_json(raw)
